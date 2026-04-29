@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { HiArrowRight } from 'react-icons/hi2';
 import IMG from '../../../assets/logo.png';
-import './AuthLayout.css';
+import '../../../Authlayout.css';
 
 interface AuthLayoutProps {
   children: ReactNode;
