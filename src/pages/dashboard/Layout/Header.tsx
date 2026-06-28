@@ -1,4 +1,3 @@
-import { MdMenu } from "react-icons/md";
 import UserLayout from "../component/UserLayout";
 import { useNavigate } from "react-router-dom";
 import Logo from "../../../assets/logo.png";
@@ -23,7 +22,7 @@ export default function Header({ onMenuClick }: HeaderProps) {
             className="lg:hidden p-2 rounded-md text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-colors"
             aria-label="Open sidebar"
           >
-            <MdMenu className="h-6 w-6" />
+            
           </button>
 
           <div className="logo-wrap">
