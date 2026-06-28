@@ -41,7 +41,6 @@ function App() {
         <Route path="/orders/:id" element={<OrderDetailPage/>}/>
         </Route>
          <Route path="/notifications/:id" element={<NotificationDetailsRoute />} />
- 
         <Route path="/profile" element={<ProfileContent/>}/>
         <Route path="/settings" element={<Settings/>}/>
         </Route>
