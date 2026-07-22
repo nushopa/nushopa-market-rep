@@ -5,7 +5,6 @@ const Dashboard = () => {
   return (
     <div className="min-h-screen ">
       <div className="max-w-5xl mx-auto">
-
       <Stats/>
       <Trans/>
       </div>

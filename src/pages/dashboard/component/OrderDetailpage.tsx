@@ -11,8 +11,6 @@ import ConfirmCodeModal from "./ConfirmCodeModal";
 import { toast } from "react-toastify";
 import type { MappedOrder, ProductItem } from "./types";
 
-
-
 const OrderDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -22,7 +20,6 @@ const OrderDetailPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isConfirming, setIsConfirming] = useState(false);
-  const [modalError, setModalError] = useState<string | null>(null); // ← new
 
   const distributorId = localStorage.getItem("userId");
 
@@ -52,9 +49,7 @@ const OrderDetailPage: React.FC = () => {
       name: p.product_id?.product_name || "Unknown Product",
       qty: p.product_quantity || 1,
       price: p.product_id?.product_price || 0,
-      image:
-        p.product_id?.product_image ||
-        "",
+      image: p.product_id?.product_image || "",
     })),
   });
 
@@ -101,37 +96,43 @@ const OrderDetailPage: React.FC = () => {
     fetchOrder();
   }, [distributorId, id]);
 
+
   const handleConfirmCode = async (code: string) => {
-    setIsConfirming(true);
-    setModalError(null); 
-    try {
-      const response = await confirmDeliveryCode(order!.id, code);
-      if (response.success) {
-        toast.success("Delivery code confirmed successfully!");
-        setIsModalOpen(false);
-        setModalError(null);
-      }
-    } catch (err: unknown) {
-      console.error("Failed to confirm code:", err);
-      const errorMessage = axios.isAxiosError(err)
-        ? err.response?.data?.message || "Failed to confirm delivery code."
-        : "An unexpected error occurred.";
-      toast.error(errorMessage);
-      setModalError(errorMessage); 
-    } finally {
-      setIsConfirming(false);
+  setIsConfirming(true);
+  try {
+    const response = await confirmDeliveryCode(order!.id, code);
+
+    // TEMP debug — confirm the real shape of a successful response, then remove.
+    // console.log("confirmDeliveryCode response:", response);
+
+    if (!response.success) {
+      throw new Error(response.message || "Failed to confirm delivery code.");
     }
-  };
+    toast.success("Delivery code confirmed successfully!");
+    // Do NOT close the modal here — let it show the success screen.
+    // The modal's own "Done" button (or backdrop/Escape) closes it.
+  } catch (err: unknown) {
+    console.error("Failed to confirm code:", err);
+    const message = axios.isAxiosError(err)
+      ? err.response?.data?.message
+      : err instanceof Error
+        ? err.message
+        : undefined;
+    // Re-throw so ConfirmCodeModal catches it and shows the failed screen.
+    throw new Error(message || "Failed to confirm delivery code.");
+  } finally {
+    setIsConfirming(false);
+  }
+};
 
   const handleModalClose = () => {
     setIsModalOpen(false);
-    setModalError(null); 
   };
 
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
       case "new":
-        return "bg-green-100 text-blue-700";
+        return "bg-blue-100 text-blue-700";
       case "processing":
         return "bg-yellow-100 text-yellow-700";
       case "pending":
@@ -300,12 +301,11 @@ const OrderDetailPage: React.FC = () => {
 
       {/* Confirm Code Modal */}
       <ConfirmCodeModal
-        key={isModalOpen ? "open" : "closed"} 
+        key={isModalOpen ? "open" : "closed"}
         isOpen={isModalOpen}
         onClose={handleModalClose}
         onSubmit={handleConfirmCode}
         isLoading={isConfirming}
-        externalError={modalError} 
       />
     </>
   );

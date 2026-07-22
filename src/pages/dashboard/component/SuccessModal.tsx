@@ -13,7 +13,7 @@ const SealCheckIcon: React.FC = () => (
   <PiSealCheckFill size={72} color="#16A34A" aria-hidden="true" />
 );
 
-const SuccessModalInner: React.FC<Omit<SuccessModalProps, "isOpen">> = ({
+const SuccessModal: React.FC<Omit<SuccessModalProps, "isOpen">> = ({
   onClose,
   title = "Successful",
   description = "Your action was completed successfully.",
@@ -63,11 +63,6 @@ const SuccessModalInner: React.FC<Omit<SuccessModalProps, "isOpen">> = ({
       </div>
     </div>
   );
-};
-
-const SuccessModal: React.FC<SuccessModalProps> = ({ isOpen, ...props }) => {
-  if (!isOpen) return null;
-  return <SuccessModalInner key="success-modal" {...props} />;
 };
 
 export default SuccessModal;
