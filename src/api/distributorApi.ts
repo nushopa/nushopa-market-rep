@@ -153,13 +153,39 @@ export const fetchTotalCommission = async (
   return response.data;
 };
 
+// export const confirmDeliveryCode = async (
+//   orderID: string,
+//   delivery_code: string,
+// ): Promise<ApiResponse<ConfirmDeliveryData>> => {
+//   const response = await api.post<ApiResponse<ConfirmDeliveryData>>(
+//     `/order/confirm-delivery`,
+//     { orderID, delivery_code },
+//   );
+//   return response.data;
+// };
+
 export const confirmDeliveryCode = async (
   orderID: string,
   delivery_code: string,
 ): Promise<ApiResponse<ConfirmDeliveryData>> => {
-  const response = await api.post<ApiResponse<ConfirmDeliveryData>>(
-    `/order/confirm-delivery`,
-    { orderID, delivery_code },
-  );
-  return response.data;
+  const raw = await api.post(`/order/confirm-delivery`, {
+    orderID,
+    delivery_code,
+  });
+  const payload: unknown =
+    raw && typeof raw === "object" && "data" in raw
+      ? (raw as { data: unknown }).data
+      : raw;
+  if (
+    payload &&
+    typeof payload === "object" &&
+    "success" in (payload as Record<string, unknown>)
+  ) {
+    return payload as ApiResponse<ConfirmDeliveryData>;
+  }
+  return {
+    success: true,
+    message: "Delivery code confirmed successfully.",
+    data: payload as ConfirmDeliveryData,
+  };
 };

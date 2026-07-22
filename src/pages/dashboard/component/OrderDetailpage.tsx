@@ -96,34 +96,29 @@ const OrderDetailPage: React.FC = () => {
     fetchOrder();
   }, [distributorId, id]);
 
-
   const handleConfirmCode = async (code: string) => {
-  setIsConfirming(true);
-  try {
-    const response = await confirmDeliveryCode(order!.id, code);
+    setIsConfirming(true);
+    try {
+      const response = await confirmDeliveryCode(order!.id, code);
 
-    // TEMP debug — confirm the real shape of a successful response, then remove.
-    // console.log("confirmDeliveryCode response:", response);
-
-    if (!response.success) {
-      throw new Error(response.message || "Failed to confirm delivery code.");
+      if (!response.success) {
+        throw new Error(response.message || "Failed to confirm delivery code.");
+       
+      }
+      toast.success("Delivery code confirmed successfully!");
+    } catch (err: unknown) {
+      console.error("Failed to confirm code:", err);
+      const message = axios.isAxiosError(err)
+        ? err.response?.data?.message
+        : err instanceof Error
+          ? err.message
+          : undefined;
+      throw new Error(message || "Failed to confirm delivery code.");
+     toast.error("Invalid Delivery code!");
+    } finally {
+      setIsConfirming(false);
     }
-    toast.success("Delivery code confirmed successfully!");
-    // Do NOT close the modal here — let it show the success screen.
-    // The modal's own "Done" button (or backdrop/Escape) closes it.
-  } catch (err: unknown) {
-    console.error("Failed to confirm code:", err);
-    const message = axios.isAxiosError(err)
-      ? err.response?.data?.message
-      : err instanceof Error
-        ? err.message
-        : undefined;
-    // Re-throw so ConfirmCodeModal catches it and shows the failed screen.
-    throw new Error(message || "Failed to confirm delivery code.");
-  } finally {
-    setIsConfirming(false);
-  }
-};
+  };
 
   const handleModalClose = () => {
     setIsModalOpen(false);

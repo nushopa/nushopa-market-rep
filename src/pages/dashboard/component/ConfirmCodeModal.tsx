@@ -12,20 +12,24 @@ export interface ConfirmCodeModalProps {
   successDescription?: string;
   successButtonLabel?: string;
   onSuccessClose?: () => void;
+
   failedTitle?: string;
   failedDescription?: string;
   failedButtonLabel?: string;
 }
 
 type ConfirmCodeModalInnerProps = Omit<ConfirmCodeModalProps, "isOpen">;
+
 type Step = "confirm" | "success" | "failed";
 
 const SealCheckIconLarge: React.FC = () => (
   <PiSealCheckFill size={72} color="#16A34A" aria-hidden="true" />
 );
+
 const XCircleIconLarge: React.FC = () => (
   <PiXCircleFill size={72} className="text-red-500 shrink-0" aria-hidden="true" />
 );
+
 const XCircleIconInline: React.FC = () => (
   <PiXCircleFill size={16} className="text-red-500 shrink-0" aria-hidden="true" />
 );
@@ -61,9 +65,12 @@ const ConfirmCodeModalInner: React.FC<ConfirmCodeModalInnerProps> = ({
     }
   }, []);
 
+  // Clear any pending shake timeout on unmount so we don't setState after unmount.
   React.useEffect(() => {
     return () => {
-      if (shakeTimeoutRef.current) window.clearTimeout(shakeTimeoutRef.current);
+      if (shakeTimeoutRef.current) {
+        window.clearTimeout(shakeTimeoutRef.current);
+      }
     };
   }, []);
 
@@ -71,10 +78,13 @@ const ConfirmCodeModalInner: React.FC<ConfirmCodeModalInnerProps> = ({
 
   const triggerShake = () => {
     setShake(true);
-    if (shakeTimeoutRef.current) window.clearTimeout(shakeTimeoutRef.current);
+    if (shakeTimeoutRef.current) {
+      window.clearTimeout(shakeTimeoutRef.current);
+    }
     shakeTimeoutRef.current = window.setTimeout(() => setShake(false), 400);
   };
 
+  // Local, in-form validation error (e.g. empty input) — stays on the confirm screen.
   const failInline = (message: string) => {
     setLocalError(message);
     triggerShake();
@@ -90,12 +100,11 @@ const ConfirmCodeModalInner: React.FC<ConfirmCodeModalInnerProps> = ({
     try {
       setSubmitting(true);
       await onSubmit(code.trim());
-      // Reached only if onSubmit resolved WITHOUT throwing.
       setCode("");
-      setFailedMessage(null);
       setStep("success");
     } catch (err) {
-      // Reached only if onSubmit rejected/threw.
+      // A rejected/thrown submission — e.g. wrong or expired code — goes to
+      // the full-screen failed step rather than an inline message.
       const message = err instanceof Error && err.message ? err.message : null;
       setFailedMessage(message);
       setStep("failed");
@@ -119,182 +128,215 @@ const ConfirmCodeModalInner: React.FC<ConfirmCodeModalInnerProps> = ({
   };
 
   const handleSuccessClose = onSuccessClose ?? onClose;
+
   const handleSuccessBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (e.target === e.currentTarget) handleSuccessClose();
   };
+
   const handleSuccessKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
     if (e.key === "Escape") handleSuccessClose();
   };
 
+  // Reset back to the confirm form so the user can retry with a new/corrected code.
   const handleRetry = () => {
     setFailedMessage(null);
     setCode("");
     setStep("confirm");
     requestAnimationFrame(() => inputRef.current?.focus());
   };
+
   const handleFailedBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (e.target === e.currentTarget) onClose();
   };
+
   const handleFailedKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
     if (e.key === "Escape") onClose();
   };
 
-  // Exactly one of these three renders — switch makes the exclusivity explicit
-  // and impossible to accidentally fall through.
-  switch (step) {
-    case "success":
-      return (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4"
-          onClick={handleSuccessBackdropClick}
-          onKeyDown={handleSuccessKeyDown}
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="success-modal-title"
-          aria-describedby="success-modal-description"
-        >
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-8 flex flex-col items-center text-center space-y-5">
-            <SealCheckIconLarge />
-            <div className="space-y-1">
-              <h2 id="success-modal-title" className="text-xl font-semibold text-gray-900">
-                {successTitle}
-              </h2>
-              <p id="success-modal-description" className="text-sm text-gray-500">
-                {successDescription}
-              </p>
-            </div>
-            <button
-              type="button"
-              onClick={handleSuccessClose}
-              autoFocus
-              className="w-full px-4 py-2.5 text-sm font-medium text-white bg-black rounded-xl hover:bg-gray-800 transition-colors"
+  if (step === "success") {
+    return (
+      <div
+        className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4"
+        onClick={handleSuccessBackdropClick}
+        onKeyDown={handleSuccessKeyDown}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="success-modal-title"
+        aria-describedby="success-modal-description"
+      >
+        <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-8 flex flex-col items-center text-center space-y-5">
+          <SealCheckIconLarge />
+
+          <div className="space-y-1">
+            <h2
+              id="success-modal-title"
+              className="text-xl font-semibold text-gray-900"
             >
-              {successButtonLabel}
-            </button>
-          </div>
-        </div>
-      );
-
-    case "failed":
-      return (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4"
-          onClick={handleFailedBackdropClick}
-          onKeyDown={handleFailedKeyDown}
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="failed-modal-title"
-          aria-describedby="failed-modal-description"
-        >
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-8 flex flex-col items-center text-center space-y-5">
-            <XCircleIconLarge />
-            <div className="space-y-1">
-              <h2 id="failed-modal-title" className="text-xl font-semibold text-gray-900">
-                {failedTitle}
-              </h2>
-              <p id="failed-modal-description" className="text-sm text-gray-500">
-                {failedMessage || failedDescription}
-              </p>
-            </div>
-            <button
-              type="button"
-              onClick={handleRetry}
-              autoFocus
-              className="w-full px-4 py-2.5 text-sm font-medium text-white bg-black rounded-xl hover:bg-gray-800 transition-colors"
+              {successTitle}
+            </h2>
+            <p
+              id="success-modal-description"
+              className="text-sm text-gray-500"
             >
-              {failedButtonLabel}
-            </button>
+              {successDescription}
+            </p>
           </div>
+
+          <button
+            type="button"
+            onClick={handleSuccessClose}
+            autoFocus
+            className="w-full px-4 py-2.5 text-sm font-medium text-white bg-black rounded-xl hover:bg-gray-800 transition-colors"
+          >
+            {successButtonLabel}
+          </button>
         </div>
-      );
-
-    case "confirm":
-    default:
-      return (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4"
-          onClick={handleBackdropClick}
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="confirm-modal-title"
-          aria-describedby="confirm-modal-description"
-        >
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6 space-y-5">
-            <div className="space-y-1">
-              <h2 id="confirm-modal-title" className="text-lg font-semibold text-gray-900">
-                {title}
-              </h2>
-              <p id="confirm-modal-description" className="text-sm text-gray-500">
-                {description}
-              </p>
-            </div>
-
-            <div className="space-y-1">
-              <label htmlFor="confirm-code-input" className="block text-sm font-medium text-gray-700">
-                Confirmation Code
-              </label>
-              <input
-                ref={focusInput}
-                id="confirm-code-input"
-                type="text"
-                value={code}
-                onChange={handleChange}
-                onKeyDown={handleKeyDown}
-                placeholder="e.g. 4829"
-                disabled={busy}
-                aria-invalid={localError ? true : undefined}
-                aria-describedby={localError ? "confirm-code-error" : undefined}
-                className={[
-                  "w-full px-4 py-2.5 rounded-xl border text-sm",
-                  "focus:outline-none focus:ring-2 focus:ring-black/20",
-                  "transition-colors",
-                  "disabled:opacity-50 disabled:cursor-not-allowed",
-                  localError
-                    ? "border-red-400 bg-red-50 placeholder-red-300"
-                    : "border-gray-300 bg-gray-50 placeholder-gray-400",
-                  shake ? "animate-[shake_0.4s_ease-in-out]" : "",
-                ].join(" ")}
-              />
-              {localError && (
-                <p id="confirm-code-error" role="alert" className="flex items-center gap-1.5 text-xs text-red-500 mt-1">
-                  <XCircleIconInline />
-                  {localError}
-                </p>
-              )}
-            </div>
-
-            <div className="flex gap-3 pt-1">
-              <button
-                type="button"
-                onClick={onClose}
-                disabled={busy}
-                className="flex-1 px-4 py-2.5 text-sm font-medium text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={handleSubmit}
-                disabled={busy || !code.trim()}
-                className="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-black rounded-xl hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-              >
-                {busy ? (
-                  <>
-                    <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" aria-hidden="true" />
-                    Verifying...
-                  </>
-                ) : (
-                  "Confirm"
-                )}
-              </button>
-            </div>
-          </div>
-        </div>
-      );
+      </div>
+    );
   }
+
+  if (step === "failed") {
+    return (
+      <div
+        className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4"
+        onClick={handleFailedBackdropClick}
+        onKeyDown={handleFailedKeyDown}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="failed-modal-title"
+        aria-describedby="failed-modal-description"
+      >
+        <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-8 flex flex-col items-center text-center space-y-5">
+          <XCircleIconLarge />
+
+          <div className="space-y-1">
+            <h2
+              id="failed-modal-title"
+              className="text-xl font-semibold text-gray-900"
+            >
+              {failedTitle}
+            </h2>
+            <p
+              id="failed-modal-description"
+              className="text-sm text-gray-500"
+            >
+              {failedMessage || failedDescription}
+            </p>
+          </div>
+
+          <button
+            type="button"
+            onClick={handleRetry}
+            autoFocus
+            className="w-full px-4 py-2.5 text-sm font-medium text-white bg-black rounded-xl hover:bg-gray-800 transition-colors"
+          >
+            {failedButtonLabel}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4"
+      onClick={handleBackdropClick}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="confirm-modal-title"
+      aria-describedby="confirm-modal-description"
+    >
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6 space-y-5">
+        <div className="space-y-1">
+          <h2
+            id="confirm-modal-title"
+            className="text-lg font-semibold text-gray-900"
+          >
+            {title}
+          </h2>
+          <p id="confirm-modal-description" className="text-sm text-gray-500">
+            {description}
+          </p>
+        </div>
+
+        <div className="space-y-1">
+          <label
+            htmlFor="confirm-code-input"
+            className="block text-sm font-medium text-gray-700"
+          >
+            Confirmation Code
+          </label>
+          <input
+            ref={focusInput}
+            id="confirm-code-input"
+            type="text"
+            value={code}
+            onChange={handleChange}
+            onKeyDown={handleKeyDown}
+            placeholder="e.g. 4829"
+            disabled={busy}
+            aria-invalid={localError ? true : undefined}
+            aria-describedby={localError ? "confirm-code-error" : undefined}
+            className={[
+              "w-full px-4 py-2.5 rounded-xl border text-sm",
+              "focus:outline-none focus:ring-2 focus:ring-black/20",
+              "transition-colors",
+              "disabled:opacity-50 disabled:cursor-not-allowed",
+              localError
+                ? "border-red-400 bg-red-50 placeholder-red-300"
+                : "border-gray-300 bg-gray-50 placeholder-gray-400",
+              shake ? "animate-[shake_0.4s_ease-in-out]" : "",
+            ].join(" ")}
+          />
+          {localError && (
+            <p
+              id="confirm-code-error"
+              role="alert"
+              className="flex items-center gap-1.5 text-xs text-red-500 mt-1"
+            >
+              <XCircleIconInline />
+              {localError}
+            </p>
+          )}
+        </div>
+
+        <div className="flex gap-3 pt-1">
+          <button
+            type="button"
+            onClick={onClose}
+            disabled={busy}
+            className="flex-1 px-4 py-2.5 text-sm font-medium text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            onClick={handleSubmit}
+            disabled={busy || !code.trim()}
+            className="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-black rounded-xl hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+          >
+            {busy ? (
+              <>
+                <span
+                  className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"
+                  aria-hidden="true"
+                />
+                Verifying...
+              </>
+            ) : (
+              "Confirm"
+            )}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 };
 
-const ConfirmCodeModal: React.FC<ConfirmCodeModalProps> = ({ isOpen, ...props }) => {
+const ConfirmCodeModal: React.FC<ConfirmCodeModalProps> = ({
+  isOpen,
+  ...props
+}) => {
   if (!isOpen) return null;
   return <ConfirmCodeModalInner key="confirm-code-modal" {...props} />;
 };
