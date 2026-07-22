@@ -1,23 +1,32 @@
 import React, { useState, useRef, useCallback } from "react";
+import SuccessModal from "./SuccessModal";
 
 export interface ConfirmCodeModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (code: string) => void;
+  // Return true when the code is correct, false (or throw) when it isn't.
+  // The modal waits for this before deciding what to show next.
+  onSubmit: (code: string) => boolean | Promise<boolean>;
   isLoading?: boolean;
   title?: string;
   description?: string;
   externalError?: string | null;
+  // Copy shown on the built-in success screen after a correct code.
+  successTitle?: string;
+  successDescription?: string;
+  successButtonLabel?: string;
 }
 
-// ← Extract inner props into a named interface instead of using Omit inline
 interface ConfirmCodeModalInnerProps {
   onClose: () => void;
-  onSubmit: (code: string) => void;
+  onSubmit: (code: string) => boolean | Promise<boolean>;
   isLoading?: boolean;
   title?: string;
   description?: string;
   externalError?: string | null;
+  successTitle?: string;
+  successDescription?: string;
+  successButtonLabel?: string;
 }
 
 const ConfirmCodeModalInner: React.FC<ConfirmCodeModalInnerProps> = ({
@@ -27,9 +36,14 @@ const ConfirmCodeModalInner: React.FC<ConfirmCodeModalInnerProps> = ({
   title = "Confirm Delivery Code",
   description = "Enter the confirmation code provided by the customer to complete this delivery.",
   externalError = null,
+  successTitle = "Successful",
+  successDescription = "The delivery code was confirmed successfully.",
+  successButtonLabel = "Done",
 }) => {
   const [code, setCode] = useState("");
   const [localError, setLocalError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [step, setStep] = useState<"code" | "success">("code");
 
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -41,17 +55,30 @@ const ConfirmCodeModalInner: React.FC<ConfirmCodeModalInnerProps> = ({
   }, []);
 
   const displayError: string | null = externalError ?? localError;
+  const busy = isLoading || isSubmitting;
 
-  const handleSubmit = () => {
-  if (!code.trim()) {
-    setLocalError("Please enter a confirmation code.");
-    return;
-  }
-  setLocalError(null);
-  onSubmit(code.trim());
-  setCode(""); 
-  onClose();
-};
+  const handleSubmit = async () => {
+    if (!code.trim()) {
+      setLocalError("Please enter a confirmation code.");
+      return;
+    }
+    setLocalError(null);
+    setIsSubmitting(true);
+
+    try {
+      const isCorrect = await onSubmit(code.trim());
+      if (isCorrect) {
+        setCode("");
+        setStep("success");
+      } else {
+        setLocalError("That code doesn't match. Please try again.");
+      }
+    } catch {
+      setLocalError("Something went wrong verifying the code. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setCode(e.target.value);
@@ -66,6 +93,18 @@ const ConfirmCodeModalInner: React.FC<ConfirmCodeModalInnerProps> = ({
   const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (e.target === e.currentTarget) onClose();
   };
+
+  if (step === "success") {
+    return (
+      <SuccessModal
+        isOpen
+        onClose={onClose}
+        title={successTitle}
+        description={successDescription}
+        buttonLabel={successButtonLabel}
+      />
+    );
+  }
 
   return (
     <div
@@ -104,7 +143,7 @@ const ConfirmCodeModalInner: React.FC<ConfirmCodeModalInnerProps> = ({
             onChange={handleChange}
             onKeyDown={handleKeyDown}
             placeholder="e.g. 4829"
-            disabled={isLoading}
+            disabled={busy}
             aria-invalid={displayError ? true : undefined}
             aria-describedby={displayError ? "confirm-code-error" : undefined}
             className={[
@@ -132,7 +171,7 @@ const ConfirmCodeModalInner: React.FC<ConfirmCodeModalInnerProps> = ({
           <button
             type="button"
             onClick={onClose}
-            disabled={isLoading}
+            disabled={busy}
             className="flex-1 px-4 py-2.5 text-sm font-medium text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Cancel
@@ -140,10 +179,10 @@ const ConfirmCodeModalInner: React.FC<ConfirmCodeModalInnerProps> = ({
           <button
             type="button"
             onClick={handleSubmit}
-            disabled={isLoading || !code.trim()}
+            disabled={busy || !code.trim()}
             className="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-black rounded-xl hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
-            {isLoading ? (
+            {busy ? (
               <>
                 <span
                   className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"
