@@ -5,12 +5,44 @@ import { useAuth } from "../../../context/AuthContext";
 interface AvatarProps {
   onProfile?: () => void;
   onSettings?: () => void;
+  size?: "sm" | "md" | "lg";
+  showName?: boolean;
 }
 
-export default function UserLayout({ onSettings }: AvatarProps) {
+const SIZE_STYLES = {
+  sm: {
+    button: "w-8 h-8",
+    text: "text-xs",
+  },
+  md: {
+    button: "w-10 h-10",
+    text: "text-sm",
+  },
+  lg: {
+    button: "w-20 h-20",
+    text: "text-2xl",
+  },
+} as const;
+
+export default function UserLayout({
+  onSettings,
+  size = "md",
+  showName = false,
+}: AvatarProps) {
   const { user, logout } = useAuth();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+  const { button: buttonSize, text: textSize } = SIZE_STYLES[size];
+
+  const getFullName = (): string => {
+    if (user?.name) return user.name;
+    if (user?.first_name && user?.last_name) {
+      return `${user.first_name} ${user.last_name}`;
+    }
+    if (user?.first_name) return user.first_name;
+    if (user?.email) return user.email;
+    return "User";
+  };
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
@@ -60,21 +92,27 @@ export default function UserLayout({ onSettings }: AvatarProps) {
     },
   ];
 
-  return (
-    <div ref={ref} className="relative">
-      <button
-        onClick={() => setOpen((prev) => !prev)}
-        aria-label="User menu"
-        aria-haspopup="true"
-        aria-expanded={open}
-        className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-700 rounded-full flex items-center justify-center shadow-md cursor-pointer hover:shadow-lg hover:scale-105 active:scale-95 transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2"
-      >
-        <span className="text-white font-semibold text-sm select-none">
-          {getInitials()}
-        </span>
-      </button>
+  const isLarge = size === "lg";
 
-      {open && (
+  return (
+    <div
+      ref={ref}
+      className={`flex ${isLarge ? "flex-col" : "flex-row"} items-center gap-2`}
+    >
+      <div className="relative">
+        <button
+          onClick={() => setOpen((prev) => !prev)}
+          aria-label="User menu"
+          aria-haspopup="true"
+          aria-expanded={open}
+          className={`${buttonSize} bg-gradient-to-br from-blue-500 to-blue-700 rounded-full flex items-center justify-center shadow-md cursor-pointer hover:shadow-lg hover:scale-105 active:scale-95 transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2`}
+        >
+          <span className={`text-white font-semibold ${textSize} select-none`}>
+            {getInitials()}
+          </span>
+        </button>
+
+        {open && (
         <div
           className="absolute right-0 mt-2 w-56 rounded-xl bg-white shadow-xl border border-gray-100 z-50 overflow-hidden animate-[fadeSlideDown_0.15s_ease-out]"
           role="menu"
@@ -123,14 +161,25 @@ export default function UserLayout({ onSettings }: AvatarProps) {
             </button>
           </div>
         </div>
-      )}
+        )}
 
-      <style>{`
-        @keyframes fadeSlideDown {
-          from { opacity: 0; transform: translateY(-6px); }
-          to   { opacity: 1; transform: translateY(0); }
-        }
-      `}</style>
+        <style>{`
+          @keyframes fadeSlideDown {
+            from { opacity: 0; transform: translateY(-6px); }
+            to   { opacity: 1; transform: translateY(0); }
+          }
+        `}</style>
+      </div>
+
+      {showName && (
+        <span
+          className={`font-medium text-gray-900 truncate max-w-[200px] ${
+            isLarge ? "text-base" : "text-sm"
+          }`}
+        >
+          {getFullName()}
+        </span>
+      )}
     </div>
   );
 }

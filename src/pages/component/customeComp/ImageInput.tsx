@@ -1,5 +1,5 @@
-import React, { useState, useRef } from 'react';
-import type { FormFieldProps } from '../types';
+import React, { useState, useRef } from "react";
+import type { FormFieldProps } from "../types";
 
 interface ImageInputProps extends FormFieldProps {
   value?: File | null;
@@ -23,9 +23,9 @@ const ImageInput: React.FC<ImageInputProps> = ({
   previewUrl,
   required = false,
   error,
-  className = '',
+  className = "",
   disabled = false,
-  accept = 'image/*',
+  accept = "image/*",
   maxSizeMB = 5,
 }) => {
   const [preview, setPreview] = useState<string | null>(previewUrl || null);
@@ -64,7 +64,7 @@ const ImageInput: React.FC<ImageInputProps> = ({
     onChange?.(null);
     setPreview(null);
     if (fileInputRef.current) {
-      fileInputRef.current.value = '';
+      fileInputRef.current.value = "";
     }
   };
 
@@ -73,7 +73,7 @@ const ImageInput: React.FC<ImageInputProps> = ({
       {label && (
         <label
           htmlFor={name}
-          className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+          className="block text-sm font-medium text-black"
         >
           {label} {required && <span className="text-red-500">*</span>}
         </label>
@@ -85,15 +85,15 @@ const ImageInput: React.FC<ImageInputProps> = ({
           <div
             onClick={handleAreaClick}
             className={`
-              relative w-full h-48 rounded-lg border-2 border-dashed transition-all duration-200
-              ${
-                preview || value
-                  ? 'border-blue-300 bg-blue-50 dark:bg-blue-950/20'
-                  : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500 bg-gray-50 dark:bg-gray-800/50'
-              }
-              ${disabled ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'}
-              ${error ? 'border-red-500 bg-red-50 dark:bg-red-950/20' : ''}
-            `}
+    relative w-full h-48 rounded-lg border-2 border-dashed transition-all duration-200 bg-transparent
+    ${
+      preview || value
+        ? "border-blue-300"
+        : "border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500"
+    }
+    ${disabled ? "opacity-60 cursor-not-allowed" : "cursor-pointer"}
+    ${error ? "border-red-500" : ""}
+  `}
           >
             {preview ? (
               <>
@@ -126,7 +126,7 @@ const ImageInput: React.FC<ImageInputProps> = ({
                 )}
               </>
             ) : (
-              <div className="flex flex-col items-center justify-center h-full text-gray-500 dark:text-gray-400">
+              <div className="flex flex-col items-center justify-center h-full text-gray-700 dark:text-black">
                 <svg
                   className="w-12 h-12 mb-2"
                   fill="none"
@@ -140,8 +140,12 @@ const ImageInput: React.FC<ImageInputProps> = ({
                     d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
                   />
                 </svg>
-                <p className="text-sm font-medium">Click to upload or drag and drop</p>
-                <p className="text-xs mt-1">PNG, JPG, GIF up to {maxSizeMB}MB</p>
+                <p className="text-sm font-medium">
+                  Click to upload or drag and drop
+                </p>
+                <p className="text-xs mt-1">
+                  PNG, JPG, GIF up to {maxSizeMB}MB
+                </p>
               </div>
             )}
           </div>

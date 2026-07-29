@@ -1,24 +1,27 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { toast } from 'react-toastify';
-import AuthLayout from '../component/layout/AuthLayout';
-import OtpInput from '../component/customeComp/OtpInput';
-import ResendTimer from '../component/ResendTimer';
-import { useVerifySignupOtp, useResendOtp } from '../../hook/useAuth';
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
+import AuthLayout from "../component/layout/AuthLayout";
+import OtpInput from "../component/customeComp/OtpInput";
+import ResendTimer from "../component/ResendTimer";
+import { useVerifySignupOtp, useResendOtp } from "../../hook/useAuth";
+import { useAuth } from "../../context/AuthContext";
+import { normalizeUser } from "../../utils/normalizeUser";
 
 const OTP_LENGTH = 6;
 
 const OtpPage: React.FC = () => {
   const navigate = useNavigate();
+  const { setUser } = useAuth();
 
-  const [otp, setOtp]           = useState<string[]>(Array(OTP_LENGTH).fill(''));
+  const [otp, setOtp] = useState<string[]>(Array(OTP_LENGTH).fill(""));
   const [hasError, setHasError] = useState(false);
 
   const verifyOtp = useVerifySignupOtp();
   const resendOtp = useResendOtp();
 
   // email saved during signup
-  const email = localStorage.getItem('pendingEmail') ?? '';
+  const email = localStorage.getItem("pendingEmail") ?? "";
 
   const handleOtpChange = (next: string[]) => {
     setOtp(next);
@@ -27,46 +30,57 @@ const OtpPage: React.FC = () => {
 
   const handleComplete = (code: string) => {
     if (!email) {
-      toast.error('Session expired. Please sign up again.');
-      navigate('/signup');
+      toast.error("Session expired. Please sign up again.");
+      navigate("/signup");
       return;
     }
 
     verifyOtp.mutate(
       { email, otp: code },
       {
-        onSuccess: () => {
-          toast.success('Identity verified!');
-          localStorage.removeItem('pendingEmail');
-          navigate('/dashboard');
+        onSuccess: (data) => {
+          toast.success("Identity verified!");
+
+          if (data?.token) localStorage.setItem("token", data.token);
+
+          // Write to localStorage AND update context state so isAuthenticated
+          // is correct on the very next render (localStorage alone won't
+          // trigger a re-render of AuthProvider).
+          if (data?.user) {
+            setUser(normalizeUser(data.user));
+          }
+
+          localStorage.removeItem("pendingEmail");
+          navigate("/profile");
         },
         onError: (err) => {
           setHasError(true);
-          setOtp(Array(OTP_LENGTH).fill(''));
+          setOtp(Array(OTP_LENGTH).fill(""));
           toast.error(
-            err?.response?.data?.message || 'Invalid OTP. Please try again.'
+            err?.response?.data?.message || "Invalid OTP. Please try again.",
           );
         },
-      }
+      },
     );
   };
 
   const handleResend = () => {
     if (!email) {
-      toast.error('Session expired. Please sign up again.');
-      navigate('/signup');
+      toast.error("Session expired. Please sign up again.");
+      navigate("/signup");
       return;
     }
 
     resendOtp.mutate(email, {
       onSuccess: () => {
-        setOtp(Array(OTP_LENGTH).fill(''));
+        setOtp(Array(OTP_LENGTH).fill(""));
         setHasError(false);
-        toast.info('A new OTP has been sent to your email.');
+        toast.info("A new OTP has been sent to your email.");
       },
       onError: (err) => {
         toast.error(
-          err?.response?.data?.message || 'Failed to resend OTP. Please try again.'
+          err?.response?.data?.message ||
+            "Failed to resend OTP. Please try again.",
         );
       },
     });
@@ -87,8 +101,11 @@ const OtpPage: React.FC = () => {
           Enter your <em>OTP</em>
         </h1>
         <p className="centered-subtext">
-          We sent a {OTP_LENGTH}-digit code to{' '}
-          <span className="font-medium text-gray-700">{email || 'your email'}</span>.
+          We sent a {OTP_LENGTH}-digit code to{" "}
+          <span className="font-medium text-gray-700">
+            {email || "your email"}
+          </span>
+          .
           <br />
           Enter it below to verify your identity.
         </p>

@@ -8,6 +8,8 @@ import OAuthButton from '../component/layout/OAuthButton';
 import CustomButton from '../component/CustomButton';
 import { useLogin } from '../../hook/useAuth';
 import type { AuthResponse } from '../../api/authApi';
+import { useAuth } from '../../context/AuthContext';
+import { normalizeUser } from '../../utils/normalizeUser';
 
 const MARKET_REP_ROLE = 6000;
 
@@ -19,6 +21,7 @@ const LoginPage: React.FC = () => {
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [errors, setErrors]     = useState<Record<string, string>>({});
   const navigate                = useNavigate();
+  const { setUser }             = useAuth();
 
   const login = useLogin();
 
@@ -45,22 +48,24 @@ const LoginPage: React.FC = () => {
     login.mutate(formData, {
       onSuccess: (data: AuthResponse) => {
         const role = data?.user?.role;
-
-        // role check — only market reps (6000) can access
         if (role !== MARKET_REP_ROLE) {
-          // clean up any token that was stored by the hook
           localStorage.removeItem('token');
+          localStorage.removeItem('authUser');
           toast.error('Access denied. This portal is for Market Representatives only.');
           return;
         }
-
-        // store user info for use across the app
-        if (data?.user) {
-          localStorage.setItem('authUser', JSON.stringify(data.user));
+        const normalizedUser = data?.user ? normalizeUser(data.user) : null;
+        if (normalizedUser) {
+          setUser(normalizedUser);
         }
 
         toast.success('Login successful!');
-        navigate('/dashboard');
+
+        if (normalizedUser?.profileComplete) {
+          navigate('/dashboard');
+        } else {
+          navigate('/profile');
+        }
       },
       onError: (err: AxiosError<ApiErrorResponse>) => {
         toast.error(

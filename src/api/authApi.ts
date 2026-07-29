@@ -37,7 +37,10 @@ export interface MarketRepProfileUpdate {
   proof_of_identity?: string;
 }
 
-// Raw shape returned by the API — _id is the MongoDB identifier
+// Raw shape returned by the API — _id is the MongoDB identifier.
+// Extended to include every field the Customer schema actually returns,
+// so responses from /profile and /update/market-rep/profile both typecheck
+// without needing `any` or optional-chaining workarounds.
 export interface ApiAuthUser {
   _id: string;
   id?: string;
@@ -46,12 +49,19 @@ export interface ApiAuthUser {
   email: string;
   phone_number?: string;
   role: number;
-  city?: string;
-  address?: string;
-  proof_Of_Identity?: string;
-  status?: string;
-  profile_picture?: string;
-  date_of_birth?: string;
+  city?: string | null;
+  address?: string | null;
+  state?: string | null;
+  id_type?: string | null;
+  proof_Of_Identity?: string | null;
+  status?: string | null;
+  review?: boolean | null;
+  auth_provider?: string;
+  provider_id?: string | null;
+  profile_picture?: string | null;
+  date_of_birth?: string | null;
+  profile_completed?: boolean;
+  createdAt?: string;
   updatedAt?: string;
 }
 
@@ -59,6 +69,14 @@ export interface AuthResponse {
   token?: string;
   message?: string;
   user?: ApiAuthUser;
+}
+
+// Response shape specific to updateMarketRepProfile — the backend returns
+// the full updated customer document under `profile`, not `user`.
+export interface UpdateMarketRepProfileResponse {
+  success: boolean;
+  message: string;
+  profile: ApiAuthUser;
 }
 
 export const sendOtpForSignup = async (data: {
@@ -112,8 +130,11 @@ export const getProfileDetails = async (): Promise<ApiAuthUser> => {
 
 export const updateMarketRepProfile = async (
   data: MarketRepProfileUpdate
-): Promise<{ success: boolean; message: string }> => {
-  const response = await api.put('/update/market-rep/profile', data);
+): Promise<UpdateMarketRepProfileResponse> => {
+  const response = await api.put<UpdateMarketRepProfileResponse>(
+    "/update/market-rep/profile",
+    data
+  );
   return response.data;
 };
 

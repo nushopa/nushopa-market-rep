@@ -8,6 +8,7 @@ export interface AuthUser {
   last_name?: string;
   name?: string;
   role: number;
+  profileComplete?: boolean;
 }
 
 interface AuthContextType {
@@ -15,6 +16,7 @@ interface AuthContextType {
   user: AuthUser | null;
   setUser: (user: AuthUser | null) => void;
   logout: () => Promise<void>;
+  isProfileComplete: boolean;
 }
 
 export type { AuthContextType };

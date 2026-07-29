@@ -1,4 +1,3 @@
-// src/context/AuthProvider.tsx
 import { useState, useCallback, useMemo, type ReactNode } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { AuthContext, type AuthUser } from './AuthContext';
@@ -17,6 +16,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   });
 
   const isAuthenticated = !!localStorage.getItem('token');
+
+   const isProfileComplete = !!user?.profileComplete;
 
   const setUser = useCallback((next: AuthUser | null) => {
     setUserState(next);
@@ -46,8 +47,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [qc]);
 
   const value = useMemo(
-    () => ({ isAuthenticated, user, setUser, logout }),
-    [isAuthenticated, user, setUser, logout]
+    () => ({ isAuthenticated, user, setUser, logout, isProfileComplete }),
+    [isAuthenticated, user, setUser, logout, isProfileComplete]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

@@ -3,11 +3,13 @@ import DateInput from "../../component/customeComp/DateInput";
 import { InputField } from "../../component/customeComp/InputField";
 import ImageInput from "../../component/customeComp/ImageInput";
 import SelectInput from "../../component/customeComp/SelectInput";
-import { MdEdit } from "react-icons/md";
-import { FaArrowLeft } from "react-icons/fa";
 import { updateMarketRepProfile } from "../../../api/authApi";
 import type { ProfileFormData, ProfileFormErrors } from "./types";
 import { ID_TYPES, NIGERIAN_STATES } from "./data";
+import { useNavigate } from "react-router-dom";
+import UserLayout from "../../dashboard/component/UserLayout";
+import { useAuth } from "../../../context/AuthContext";
+import { normalizeUser } from "../../../utils/normalizeUser";
 
 const minDOB = "1900-01-01";
 const maxDOB = new Date(new Date().setFullYear(new Date().getFullYear() - 18))
@@ -23,25 +25,16 @@ const ProfileContent = () => {
     state: "",
     idType: "",
     proofOfId: null,
-    userName: "John Doe", // Replace with actual user data from your auth store/context
+    userName: "John Doe",
   });
 
   const [errors, setErrors] = useState<ProfileFormErrors>({});
-  const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [apiError, setApiError] = useState<string>("");
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
-  
-
-  const getInitials = (): string => {
-    if (!form.userName) return "?";
-    const names = form.userName.trim().split(" ");
-    if (names.length >= 2) {
-      return (names[0][0] + names[1][0]).toUpperCase();
-    }
-    return names[0].slice(0, 2).toUpperCase();
-  };
+  const navigate = useNavigate();
+  const { setUser } = useAuth();
 
   const validate = (): ProfileFormErrors => {
     const e: ProfileFormErrors = {};
@@ -53,6 +46,19 @@ const ProfileContent = () => {
     if (!form.proofOfId) e.proofOfId = "Proof of ID is required.";
     return e;
   };
+
+  const isFormComplete = (): boolean => {
+    return (
+      !!form.dateOfBirth &&
+      !!form.city.trim() &&
+      !!form.address.trim() &&
+      !!form.state &&
+      !!form.idType &&
+      !!form.proofOfId
+    );
+  };
+
+  const formComplete = isFormComplete();
 
   const set = <K extends keyof ProfileFormData>(
     key: K,
@@ -107,9 +113,6 @@ const ProfileContent = () => {
     return data.secure_url as string;
   };
 
-  const handleProfilePictureClick = () => {
-    fileInputRef.current?.click();
-  };
 
   const handleImageChange = (file: File | null) => {
     set("profilePicture", file);
@@ -117,8 +120,6 @@ const ProfileContent = () => {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-
-    // 1. Validate
     const validationErrors = validate();
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
@@ -150,7 +151,7 @@ const ProfileContent = () => {
       }
 
       // Send to backend
-      await updateMarketRepProfile({
+      const response = await updateMarketRepProfile({
         city: form.city.trim(),
         address: form.address.trim(),
         date_of_birth: form.dateOfBirth,
@@ -160,7 +161,11 @@ const ProfileContent = () => {
         proof_of_identity: proofOfIdUrl,
       });
 
-      setSubmitted(true);
+      if (response?.profile) {
+        setUser(normalizeUser(response.profile));
+      }
+
+      navigate("/dashboard", { replace: true });
     } catch (err: unknown) {
       const errorMessage =
         err instanceof Error
@@ -179,54 +184,9 @@ const ProfileContent = () => {
   };
 
 
-  if (submitted) {
-    return (
-      <div className="max-w-xl mx-auto py-16 text-center">
-        <div className="w-14 h-14 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center mx-auto mb-4">
-          <svg
-            className="w-7 h-7 text-green-600"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M5 13l4 4L19 7"
-            />
-          </svg>
-        </div>
-        <h3 className="text-base font-medium text-gray-900 dark:text-white mb-1">
-          Profile submitted
-        </h3>
-        <p className="text-sm text-gray-500 dark:text-gray-400">
-          Your details are under review. We'll notify you once verified.
-        </p>
-        <button
-          type="button"
-          onClick={() => setSubmitted(false)}
-          className="mt-6 text-sm text-blue-600 dark:text-blue-400 hover:underline"
-        >
-          Edit profile
-        </button>
-      </div>
-    );
-  }
-
   return (
     <div className="max-w-3xl mx-auto py-4 px-4">
-      {/* Back button */}
-      <div className="flex items-center gap-4 mb-6">
-        <button
-          type="button"
-          onClick={() => window.history.back()}
-          className="bg-gray-100 p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
-        >
-          <FaArrowLeft />
-        </button>
-        <h2 className="text-xl font-semibold">Complete Your Profile</h2>
-      </div>
+     
 
       <form
         onSubmit={handleSubmit}
@@ -238,40 +198,14 @@ const ProfileContent = () => {
           <h3 className="text-xs font-semibold tracking-widest text-gray-400 uppercase">
             Profile Picture
           </h3>
-          <div className="text-center">
-            <div className="relative mx-auto mb-4">
-              <div className="relative w-28 h-28 mx-auto rounded-full shadow-lg border-4 border-white dark:border-gray-800 bg-gradient-to-br from-blue-600 to-indigo-600 overflow-hidden group">
-                {form.profilePicture ? (
-                  <img
-                    src={URL.createObjectURL(form.profilePicture)}
-                    alt="Profile"
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center">
-                    <span className="text-3xl font-bold text-white drop-shadow-lg">
-                      {getInitials()}
-                    </span>
-                  </div>
-                )}
-
-                {/* Edit overlay */}
-                <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center rounded-full">
-                  <button
-                    type="button"
-                    onClick={handleProfilePictureClick}
-                    disabled={loading}
-                    className="w-11 h-11 bg-white hover:bg-gray-100 rounded-full flex items-center justify-center shadow-md border border-white transition-transform hover:scale-110"
-                  >
-                    <MdEdit className="w-5 h-5 text-gray-700" />
-                  </button>
-                </div>
-              </div>
-
-              <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
-                Click the edit icon to change photo (optional)
-              </p>
-            </div>
+            <div className="flex flex-col items-center mb-4">
+  <div className="relative group inline-block">
+    <UserLayout
+    showName
+      onSettings={() => navigate("/settings")}
+      size="lg" 
+    />
+    </div>
 
             {errors.profilePicture && (
               <p data-error className="text-sm text-red-600 dark:text-red-400">
@@ -295,7 +229,7 @@ const ProfileContent = () => {
           <h3 className="text-xs font-semibold tracking-widest text-gray-400 uppercase">
             Personal Information
           </h3>
-          <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl p-6 space-y-5">
+          <div className="bg-white border border-gray-200 dark:border-gray-700 rounded-xl p-6 space-y-5">
             <DateInput
               label="Date of Birth"
               name="dateOfBirth"
@@ -351,10 +285,10 @@ const ProfileContent = () => {
 
         {/* Identity Verification */}
         <section className="space-y-3">
-          <h3 className="text-xs font-semibold tracking-widest text-gray-400 uppercase">
+          <h3 className="text-xs font-semibold tracking-widest text-black uppercase">
             Identity Verification
           </h3>
-          <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl p-6 space-y-5">
+          <div className="bg-white  border border-gray-200 dark:border-gray-700 rounded-xl p-6 space-y-5">
             <p className="text-sm text-gray-500 dark:text-gray-400">
               Upload a government-issued ID. Your document is kept secure and used only for verification.
             </p>
@@ -381,7 +315,7 @@ const ProfileContent = () => {
               maxSizeMB={10}
               required
               disabled={loading}
-              className="w-full"
+              className="w-full bg wi"
             />
           </div>
         </section>
@@ -421,8 +355,9 @@ const ProfileContent = () => {
           </p>
           <button
             type="submit"
-            disabled={loading}
-            className="bg-gray-900 dark:bg-white text-white dark:text-gray-900 text-sm font-medium px-8 py-3 rounded-xl hover:opacity-90 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+            disabled={loading || !formComplete}
+            title={!formComplete ? "Fill in all required fields to submit" : undefined}
+            className="bg-[#0F8128] text-white  text-sm font-medium px-8 py-3 rounded-xl hover:opacity-90 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
           >
             {loading ? (
               <>
