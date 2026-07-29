@@ -1,3 +1,4 @@
+import ProfileIndicator from "./component/ProfileIndicator";
 import Stats from "./component/Stats";
 import Trans from "./component/Trans";
 
@@ -6,6 +7,7 @@ const Dashboard = () => {
     <div className="min-h-screen ">
       <div className="max-w-5xl mx-auto">
       <Stats/>
+      <ProfileIndicator/>
       <Trans/>
       </div>
     </div>
