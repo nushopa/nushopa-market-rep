@@ -25,9 +25,12 @@ export default function Header({ onMenuClick }: HeaderProps) {
             
           </button>
 
-          <div className="logo-wrap">
+          <button
+            onClick={() => navigate("/dashboard")}
+            className="logo-wrap"
+          >
             <img src={Logo} alt="logo_sample" />
-          </div>
+          </button>
         </div>
 
         <div className="flex items-center gap-4">
