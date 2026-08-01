@@ -32,7 +32,7 @@ const Support = () => {
 
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-gray-200 py-4 px-5">
+    <div className="bg-gray-200 rounded-2xl  py-4 px-5">
       <div className="flex items-center ">
         <p className="text-lg font-semibold text-gray-900">Support</p>
       </div>

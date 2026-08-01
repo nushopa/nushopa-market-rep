@@ -27,7 +27,7 @@ const Notification = () => {
     }));
   };
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-gray-200 py-2 px-4">
+    <div className="bg-gray-200 rounded-2xl py-2 px-4">
       <h3 className="text-lg text-start font-semibold mb-2 text-gray-900">
         Notifications
       </h3>

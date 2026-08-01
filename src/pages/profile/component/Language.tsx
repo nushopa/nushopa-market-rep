@@ -25,7 +25,7 @@ const Language = () => {
   };
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-gray-200 py-4 px-4">
+    <div className="bg-gray-200 rounded-2xl  py-4 px-4">
       <div className="flex items-center mb-4">
        <p className="text-lg font-semibold text-gray-900">
           Language
