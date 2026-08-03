@@ -61,7 +61,7 @@ const LoginPage: React.FC = () => {
 
         toast.success('Login successful!');
 
-        if (normalizedUser?.profileComplete) {
+        if (normalizedUser?.profile_completed) {
           navigate('/dashboard');
         } else {
           navigate('/profile');

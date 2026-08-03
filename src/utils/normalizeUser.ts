@@ -24,6 +24,6 @@ export function normalizeUser(apiUser: {
     last_name: apiUser.last_name,
     name: apiUser.name,
     role: apiUser.role,
-    profileComplete: apiUser.profile_completed,
+    profile_completed: apiUser.profile_completed,
   };
 }

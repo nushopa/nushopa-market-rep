@@ -1,4 +1,3 @@
-// src/api/authApi.ts
 import axios, { AxiosError } from "axios";
 
 const api = axios.create({
@@ -37,10 +36,6 @@ export interface MarketRepProfileUpdate {
   proof_of_identity?: string;
 }
 
-// Raw shape returned by the API — _id is the MongoDB identifier.
-// Extended to include every field the Customer schema actually returns,
-// so responses from /profile and /update/market-rep/profile both typecheck
-// without needing `any` or optional-chaining workarounds.
 export interface ApiAuthUser {
   _id: string;
   id?: string;

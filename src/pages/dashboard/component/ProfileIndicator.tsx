@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { CheckCircle2, AlertTriangle, Clock3 } from "lucide-react";
 import { useAuth } from "../../../context/AuthContext";
@@ -6,9 +7,17 @@ type VerificationStatus = "pending" | "approved" | "rejected";
 
 const ProfileIndicator = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, refreshUser } = useAuth();
 
-  const profileComplete = !!user?.profileComplete;
+  // Self-healing: always check the real backend state on mount instead of
+  // trusting that whichever page updated the profile also synced context
+  // correctly. Cheap safety net against drift/mismatches upstream.
+  useEffect(() => {
+    refreshUser();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const profileComplete = !!user?.profile_completed;
   const status: VerificationStatus = user?.status ?? "pending";
 
   // Determine state: incomplete profile always wins, then status
@@ -44,24 +53,24 @@ const ProfileIndicator = () => {
     red: {
       bg: "bg-red-50 dark:bg-red-900/20",
       border: "border-red-200 dark:border-red-800",
-      text: "text-red-700 dark:text-red-400",
-      subtext: "text-red-600 dark:text-red-300",
+      text: "text-red-700",
+      subtext: "text-red-600",
       icon: <AlertTriangle className="w-5 h-5 text-red-600 dark:text-red-500" />,
       button: "bg-red-600 hover:bg-red-700 text-white",
     },
     yellow: {
       bg: "bg-yellow-50 dark:bg-yellow",
       border: "border-yellow-200 dark:border-yellow-800",
-      text: "text-gray-900 dark:text-gray",
-      subtext: "text-gray-900 dark:text-gray",
+      text: "text-gray-900",
+      subtext: "text-gray-900",
       icon: <Clock3 className="w-5 h-5 text-gray-900 dark:text-yellow-500" />,
       button: "bg-yellow-600 hover:bg-yellow-700 text-white",
     },
     green: {
       bg: "bg-green-50 dark:bg-green-900/20",
       border: "border-green-200 dark:border-green-800",
-      text: "text-green-700 dark:text-green-400",
-      subtext: "text-green-600 dark:text-green-300",
+      text: "text-green-700",
+      subtext: "text-green-600",
       icon: <CheckCircle2 className="w-5 h-5 text-green-600 dark:text-green-400" />,
       button: "bg-green-600 hover:bg-green-700 text-white",
     },
