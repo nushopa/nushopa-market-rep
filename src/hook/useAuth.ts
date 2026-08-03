@@ -2,12 +2,27 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { AxiosError } from 'axios';
 import * as api from '../api/authApi';
 import { useAuth } from '../context/AuthContext';
+import type { AuthUser } from '../context/AuthContext';
 
 export interface ApiErrorResponse {
   message?: string;
 }
 
 export type AppAxiosError = AxiosError<ApiErrorResponse>;
+
+// `ApiAuthUser.status` is `string | null | undefined`, but `AuthUser.status`
+// is a narrow literal union. This coerces any unexpected value to `null`
+// instead of trusting the backend string, so callers below can safely spread
+// `data.user` into a `setUser` call without a type error or an unsafe cast.
+const VALID_STATUSES = ['pending', 'approved', 'rejected'] as const;
+
+function toAuthStatus(
+  status: string | null | undefined,
+): AuthUser['status'] {
+  return VALID_STATUSES.includes(status as (typeof VALID_STATUSES)[number])
+    ? (status as AuthUser['status'])
+    : null;
+}
 
 export const useSendSignupOtp = () =>
   useMutation<api.AuthResponse, AppAxiosError, Parameters<typeof api.sendOtpForSignup>[0]>({
@@ -33,6 +48,7 @@ export const useVerifySignupOtp = () => {
           ...data.user,
           id: resolvedId,
           name: `${data.user.first_name ?? ''} ${data.user.last_name ?? ''}`.trim(),
+          status: toAuthStatus(data.user.status),
         });
       }
     },
@@ -63,6 +79,7 @@ export const useLogin = () => {
           ...data.user,
           id: resolvedId,
           name: `${data.user.first_name ?? ''} ${data.user.last_name ?? ''}`.trim(),
+          status: toAuthStatus(data.user.status),
         });
       }
     },
