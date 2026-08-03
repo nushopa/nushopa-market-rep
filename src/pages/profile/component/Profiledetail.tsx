@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { getProfileDetails, type ApiAuthUser as AuthUser} from "../../../api/authApi";
+import { getProfileDetails, type ApiAuthUser as AuthUser } from "../../../api/authApi";
 
 const Profiledetail = () => {
   const [profile, setProfile] = useState<AuthUser | null>(null);
@@ -63,7 +63,7 @@ const Profiledetail = () => {
   const fullName =
     `${profile.first_name || ""} ${profile.last_name || ""}`.trim();
 
-  const formatDate = (dateString?: string | Date): string => {
+  const formatDate = (dateString?: string | Date | null): string => {
     if (!dateString) return "N/A";
     try {
       return new Date(dateString).toLocaleDateString("en-US", {
@@ -113,7 +113,7 @@ const Profiledetail = () => {
           </label>
 
           <p className="text-start text-sm text-gray-900 border border-gray-200 rounded-lg py-2 px-4 break-words">
-            {formatDate(profile.date_of_birth) || "N/A"}
+            {formatDate(profile.date_of_birth)}
           </p>
         </div>
       </div>
