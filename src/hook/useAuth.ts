@@ -10,10 +10,6 @@ export interface ApiErrorResponse {
 
 export type AppAxiosError = AxiosError<ApiErrorResponse>;
 
-// `ApiAuthUser.status` is `string | null | undefined`, but `AuthUser.status`
-// is a narrow literal union. This coerces any unexpected value to `null`
-// instead of trusting the backend string, so callers below can safely spread
-// `data.user` into a `setUser` call without a type error or an unsafe cast.
 const VALID_STATUSES = ['pending', 'approved', 'rejected'] as const;
 
 function toAuthStatus(
