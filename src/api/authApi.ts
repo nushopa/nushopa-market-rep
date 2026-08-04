@@ -3,6 +3,7 @@ import axios, { AxiosError } from "axios";
 const api = axios.create({
   baseURL: import.meta.env.VITE_BASE_URL,
   headers: { "Content-Type": "application/json" },
+  withCredentials: true, 
 });
 
 api.interceptors.request.use((config) => {
@@ -15,10 +16,11 @@ api.interceptors.response.use(
   (res) => res,
   (err: AxiosError) => {
     const is401 = err.response?.status === 401;
-    const hasToken = !!localStorage.getItem("token");
-
-    if (is401 && hasToken) {
-      localStorage.removeItem("token");
+    const authEndpoints = ["/login", "/create", "/verify-otp"];
+    const isAuthEndpoint = authEndpoints.some((path) =>
+      err.config?.url?.includes(path)
+    );
+    if (is401 && !isAuthEndpoint) {
       window.location.href = "/";
     }
 
