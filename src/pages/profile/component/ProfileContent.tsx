@@ -91,7 +91,7 @@ const ProfileContent = () => {
     formData.append("upload_preset", uploadPreset);
     formData.append("resource_type", "auto"); // Supports image and PDF
 
-    const uploadUrl = `${baseUrl}/image/upload`;
+    const uploadUrl = `${baseUrl}`;
 
     const res = await fetch(uploadUrl, {
       method: "POST",
