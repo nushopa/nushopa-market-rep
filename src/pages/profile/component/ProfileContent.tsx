@@ -62,7 +62,7 @@ const ProfileContent = () => {
 
   const set = <K extends keyof ProfileFormData>(
     key: K,
-    val: ProfileFormData[K]
+    val: ProfileFormData[K],
   ) => {
     const errorKey = key as keyof ProfileFormErrors;
     setForm((prev) => ({ ...prev, [key]: val }));
@@ -80,10 +80,14 @@ const ProfileContent = () => {
     const uploadPreset = import.meta.env.VITE_UPLOAD_PRESET;
 
     if (!baseUrl) {
-      throw new Error("Cloudinary configuration is missing. Please check your .env file.");
+      throw new Error(
+        "Cloudinary configuration is missing. Please check your .env file.",
+      );
     }
     if (!uploadPreset) {
-      throw new Error("VITE_CLOUDINARY_UPLOAD_PRESET is not set in your .env file.");
+      throw new Error(
+        "VITE_CLOUDINARY_UPLOAD_PRESET is not set in your .env file.",
+      );
     }
 
     const formData = new FormData();
@@ -112,7 +116,6 @@ const ProfileContent = () => {
     const data = await res.json();
     return data.secure_url as string;
   };
-
 
   const handleImageChange = (file: File | null) => {
     set("profilePicture", file);
@@ -183,11 +186,8 @@ const ProfileContent = () => {
     }
   };
 
-
   return (
     <div className="max-w-3xl mx-auto py-4 px-4">
-     
-
       <form
         onSubmit={handleSubmit}
         noValidate
@@ -198,14 +198,14 @@ const ProfileContent = () => {
           <h3 className="text-xs font-semibold tracking-widest text-gray-400 uppercase">
             Profile Picture
           </h3>
-            <div className="flex flex-col items-center mb-4">
-  <div className="relative group inline-block">
-    <UserLayout
-    showName
-      onSettings={() => navigate("/settings")}
-      size="lg" 
-    />
-    </div>
+          <div className="flex flex-col items-center mb-4">
+            <div className="relative group inline-block">
+              <UserLayout
+                showName
+                onSettings={() => navigate("/settings")}
+                size="lg"
+              />
+            </div>
 
             {errors.profilePicture && (
               <p data-error className="text-sm text-red-600 dark:text-red-400">
@@ -290,7 +290,8 @@ const ProfileContent = () => {
           </h3>
           <div className="bg-white  border border-gray-200 dark:border-gray-700 rounded-xl p-6 space-y-5">
             <p className="text-sm text-gray-500 dark:text-gray-400">
-              Upload a government-issued ID. Your document is kept secure and used only for verification.
+              Upload a government-issued ID. Your document is kept secure and
+              used only for verification.
             </p>
 
             <SelectInput
@@ -351,19 +352,39 @@ const ProfileContent = () => {
         {/* Submit Button */}
         <div className="flex items-center justify-between pt-4">
           <p className="text-xs text-gray-400 dark:text-gray-500">
-            All fields marked <span className="text-red-500">*</span> are required.
+            All fields marked <span className="text-red-500">*</span> are
+            required.
           </p>
           <button
             type="submit"
             disabled={loading || !formComplete}
-            title={!formComplete ? "Fill in all required fields to submit" : undefined}
+            title={
+              !formComplete
+                ? "Fill in all required fields to submit"
+                : undefined
+            }
             className="bg-[#0F8128] text-white  text-sm font-medium px-8 py-3 rounded-xl hover:opacity-90 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
           >
             {loading ? (
               <>
-                <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+                <svg
+                  className="animate-spin w-4 h-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  />
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8v8H4z"
+                  />
                 </svg>
                 Saving Profile...
               </>

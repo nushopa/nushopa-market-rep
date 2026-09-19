@@ -1,35 +1,41 @@
 // OrderTable.tsx
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom"; // ← added
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import { useAuth } from "../../../context/AuthContext";
 import {
   fetchDistributorAssignedOrders,
   type AssignedOrder,
 } from "../../../api/distributorApi";
 
 const OrderTable = () => {
-  const navigate = useNavigate(); // ← added
+  const navigate = useNavigate();
+  const { user, isLoading: authLoading } = useAuth();
   const [currentPage, setCurrentPage] = useState(1);
   const [orders, setOrders] = useState<AssignedOrder[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const distributorId = localStorage.getItem("userId");
   const itemsPerPage = 10;
 
   useEffect(() => {
-    const fetchOrders = async () => {
-      if (!distributorId) {
-        setError("Distributor ID not found");
-        setLoading(false);
-        return;
-      }
+    if (authLoading) return;
 
+    if (!user) {
+      setError("You're not signed in. Please log in again.");
+      setLoading(false);
+      return;
+    }
+
+    const distributorId = user._id;
+
+
+    const fetchOrders = async () => {
       try {
         setLoading(true);
         setError(null);
 
-        const response = await fetchDistributorAssignedOrders(distributorId);
+        const response = await fetchDistributorAssignedOrders(distributorId );
         if (response.success && response.data?.assignedOrders) {
           setOrders(response.data.assignedOrders);
         } else {
@@ -51,7 +57,7 @@ const OrderTable = () => {
     };
 
     fetchOrders();
-  }, [distributorId]);
+  }, [authLoading, user]);
 
   const totalPages = Math.ceil(orders.length / itemsPerPage);
   const paginatedOrders = orders.slice(
@@ -166,7 +172,6 @@ const OrderTable = () => {
         </table>
       </div>
 
-      {/* Pagination */}
       {totalPages > 1 && (
         <div className="flex items-center justify-between mt-6 px-2">
           <p className="text-sm text-gray-500">

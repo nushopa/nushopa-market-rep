@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { MdOutlineKeyboardArrowLeft } from "react-icons/md";
 import axios from "axios";
+import { useAuth } from "../../../context/AuthContext";
 import {
   confirmDeliveryCode,
   fetchDistributorAssignedOrders,
@@ -14,14 +15,13 @@ import type { MappedOrder, ProductItem } from "./types";
 const OrderDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { user, isLoading: authLoading } = useAuth();
 
   const [order, setOrder] = useState<MappedOrder | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isConfirming, setIsConfirming] = useState(false);
-
-  const distributorId = localStorage.getItem("userId");
 
   const formatCurrency = (amount: number) =>
     `₦${amount.toLocaleString("en-NG")}`;
@@ -54,17 +54,25 @@ const OrderDetailPage: React.FC = () => {
   });
 
   useEffect(() => {
-    const fetchOrder = async () => {
-      if (!distributorId) {
-        setError("Distributor ID not found");
-        setLoading(false);
-        return;
-      }
+    if (authLoading) return;
 
+    if (!user) {
+      setError("You're not signed in. Please log in again.");
+      setLoading(false);
+      return;
+    }
+
+    const distributorId = user._id;
+
+
+    const fetchOrder = async () => {
       try {
         setLoading(true);
         setError(null);
 
+        // Fetches only the current (cookie-authenticated) distributor's
+        // assigned orders, then finds the one matching the route param —
+        // there's no distributorId to pass or mix up here.
         const response = await fetchDistributorAssignedOrders(distributorId);
         if (response.success && response.data?.assignedOrders) {
           const found = response.data.assignedOrders.find(
@@ -94,7 +102,7 @@ const OrderDetailPage: React.FC = () => {
     };
 
     fetchOrder();
-  }, [distributorId, id]);
+  }, [authLoading, user, id]);
 
   const handleConfirmCode = async (code: string) => {
     setIsConfirming(true);
@@ -103,7 +111,6 @@ const OrderDetailPage: React.FC = () => {
 
       if (!response.success) {
         throw new Error(response.message || "Failed to confirm delivery code.");
-       
       }
       toast.success("Delivery code confirmed successfully!");
     } catch (err: unknown) {
@@ -113,8 +120,8 @@ const OrderDetailPage: React.FC = () => {
         : err instanceof Error
           ? err.message
           : undefined;
+      toast.error("Invalid delivery code!");
       throw new Error(message || "Failed to confirm delivery code.");
-     toast.error("Invalid Delivery code!");
     } finally {
       setIsConfirming(false);
     }
@@ -166,7 +173,6 @@ const OrderDetailPage: React.FC = () => {
   return (
     <>
       <div className="max-w-4xl mx-auto px-4 py-8">
-        {/* Page Header */}
         <div className="flex justify-between items-center gap-3 mb-8">
           <button
             onClick={() => navigate("/dashboard")}
@@ -185,9 +191,7 @@ const OrderDetailPage: React.FC = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Left Column */}
           <div className="space-y-6">
-            {/* Order Details */}
             <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm">
               <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
                 Order Details
@@ -220,7 +224,6 @@ const OrderDetailPage: React.FC = () => {
               </div>
             </div>
 
-            {/* Order Summary */}
             <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm">
               <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
                 Order Summary
@@ -247,7 +250,6 @@ const OrderDetailPage: React.FC = () => {
               </div>
             </div>
 
-            {/* Customer Message */}
             <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm">
               <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
                 Customer Message
@@ -258,7 +260,6 @@ const OrderDetailPage: React.FC = () => {
             </div>
           </div>
 
-          {/* Right Column — Ordered Items */}
           <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm h-fit">
             <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-4">
               Ordered Items
@@ -294,7 +295,6 @@ const OrderDetailPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Confirm Code Modal */}
       <ConfirmCodeModal
         key={isModalOpen ? "open" : "closed"}
         isOpen={isModalOpen}

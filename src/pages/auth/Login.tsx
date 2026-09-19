@@ -7,7 +7,7 @@ import { InputField } from '../component/customeComp/InputField';
 import OAuthButton from '../component/layout/OAuthButton';
 import CustomButton from '../component/CustomButton';
 import { useLogin } from '../../hook/useAuth';
-import type { AuthResponse } from '../../api/authApi';
+import { logoutUser, type AuthResponse } from '../../api/authApi';
 import { useAuth } from '../../context/AuthContext';
 import { normalizeUser } from '../../utils/normalizeUser';
 
@@ -46,11 +46,10 @@ const LoginPage: React.FC = () => {
     if (!validate()) return;
 
     login.mutate(formData, {
-      onSuccess: (data: AuthResponse) => {
+      onSuccess: async (data: AuthResponse) => {
         const role = data?.user?.role;
         if (role !== MARKET_REP_ROLE) {
-          localStorage.removeItem('token');
-          localStorage.removeItem('authUser');
+         await logoutUser().catch(() => {});
           toast.error('Access denied. This portal is for Market Representatives only.');
           return;
         }

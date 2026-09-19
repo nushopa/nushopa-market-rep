@@ -1,22 +1,10 @@
-// ─────────────────────────────────────────────────────────────────────────────
-// src/api/notificationApi.ts
-// ─────────────────────────────────────────────────────────────────────────────
-
 import axios from "axios";
 import type {
   Notification,
   RawNotification,
 } from "../pages/dashboard/component/notification/notification";
 
-// ─────────────────────────────────────────────────────────────────────────────
-// AXIOS INSTANCE
-// ─────────────────────────────────────────────────────────────────────────────
 
-/**
- * Shared Axios instance for all notification API calls.
- * Base URL is read from the VITE_BASE_URL environment variable.
- * The request interceptor automatically attaches the JWT from localStorage.
- */
 const api = axios.create({
   baseURL: import.meta.env.VITE_BASE_URL,
 });

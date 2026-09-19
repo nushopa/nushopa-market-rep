@@ -1,8 +1,8 @@
 import { createContext, useContext } from "react";
 
 export interface AuthUser {
-  id: string;
-  _id?: string;
+  id?: string;
+  _id: string;
   email: string;
   first_name?: string;
   last_name?: string;
@@ -14,6 +14,7 @@ export interface AuthUser {
 
 interface AuthContextType {
   isAuthenticated: boolean;
+  isLoading: boolean;
   user: AuthUser | null;
   setUser: (user: AuthUser | null) => void;
   logout: () => Promise<void>;

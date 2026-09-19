@@ -40,16 +40,8 @@ const OtpPage: React.FC = () => {
       {
         onSuccess: (data) => {
           toast.success("Identity verified!");
-
-          if (data?.token) localStorage.setItem("token", data.token);
-
-          // Write to localStorage AND update context state so isAuthenticated
-          // is correct on the very next render (localStorage alone won't
-          // trigger a re-render of AuthProvider).
-          if (data?.user) {
-            setUser(normalizeUser(data.user));
-          }
-
+          if (data?.user) setUser(normalizeUser(data.user));
+          
           localStorage.removeItem("pendingEmail");
           navigate("/profile");
         },

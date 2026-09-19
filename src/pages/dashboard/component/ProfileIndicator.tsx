@@ -9,10 +9,7 @@ const ProfileIndicator = () => {
   const navigate = useNavigate();
   const { user, refreshUser } = useAuth();
 
-  // Self-healing: always check the real backend state on mount instead of
-  // trusting that whichever page updated the profile also synced context
-  // correctly. Cheap safety net against drift/mismatches upstream.
-  useEffect(() => {
+ useEffect(() => {
     refreshUser();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

@@ -6,6 +6,7 @@ import {
 import { FaCoins } from "react-icons/fa";
 import StatsCard from "./StatsCard";
 import { useEffect, useState } from "react";
+import { useAuth } from "../../../context/AuthContext";
 import {
   fetchAssignedOrders,
   fetchTotalCommission,
@@ -21,6 +22,7 @@ interface StatsData {
 }
 
 const Stats = () => {
+  const { user, isLoading: authLoading } = useAuth();
   const [stats, setStats] = useState<StatsData>({
     balance: 0,
     totalDeliveries: 0,
@@ -31,27 +33,32 @@ const Stats = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // CHANGED: use "userId" key which matches what login stores in localStorage
-  const distributorId = localStorage.getItem("userId");
-
   useEffect(() => {
-    const fetchAllStats = async () => {
-      if (!distributorId) {
-        setError("Distributor ID not found. Please log in again.");
-        setLoading(false);
-        return;
-      }
+    // Wait for the initial auth check (/profile) to resolve before deciding
+    // whether the user is signed in — otherwise we'd flash "not found" on
+    // every page load while that request is still in flight.
+    if (authLoading) return;
 
+    if (!user) {
+      setError("You're not signed in. Please log in again.");
+      setLoading(false);
+      return;
+    }
+
+    const distributorId = user._id;
+
+
+    const fetchAllStats = async () => {
       try {
         setLoading(true);
         setError(null);
         
         const [assignedRes, confirmedRes, pendingRes, commissionRes] =
           await Promise.allSettled([
-            fetchAssignedOrders(distributorId),
-            fetchTotalConfirmedOrders(distributorId),
-            fetchTotalPendingOrders(distributorId),
-            fetchTotalCommission(distributorId),
+            fetchAssignedOrders(distributorId ),
+            fetchTotalConfirmedOrders(distributorId ),
+            fetchTotalPendingOrders(distributorId ),
+            fetchTotalCommission(distributorId ),
           ]);
 
         setStats({
@@ -76,8 +83,6 @@ const Stats = () => {
               : 0,
         });
 
-        // ADDED: check if any individual call failed and warn in console
-        // without blocking the UI — helps pinpoint the broken endpoint
         const failures = [
           { name: "assignedOrders", result: assignedRes },
           { name: "confirmedOrders", result: confirmedRes },
@@ -89,14 +94,11 @@ const Stats = () => {
           failures.forEach((f) => {
             console.warn(
               `⚠️ Failed to fetch ${f.name}:`,
-              (f.result as PromiseRejectedResult).reason
+              (f.result as PromiseRejectedResult).reason,
             );
           });
         }
-
       } catch (err) {
-        // CHANGED: log the full error object so you can see status code,
-        // response body, and which URL failed — not just a generic message
         console.error("Unexpected error fetching stats:", err);
         setError("Failed to load statistics. Please try again.");
       } finally {
@@ -105,7 +107,7 @@ const Stats = () => {
     };
 
     fetchAllStats();
-  }, [distributorId]);
+  }, [authLoading, user]);
 
   if (loading) {
     return (

@@ -1,31 +1,4 @@
-// src/api/authApi.ts
-import axios, { AxiosError } from "axios";
-
-const api = axios.create({
-  baseURL: import.meta.env.VITE_BASE_URL,
-  headers: { "Content-Type": "application/json" },
-});
-
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem("token");
-  if (token) config.headers.Authorization = `Bearer ${token}`;
-  return config;
-});
-
-api.interceptors.response.use(
-  (res) => res,
-  (err: AxiosError) => {
-    const is401 = err.response?.status === 401;
-    const hasToken = !!localStorage.getItem("token");
-
-    if (is401 && hasToken) {
-      localStorage.removeItem("token");
-      window.location.href = "/";
-    }
-
-    return Promise.reject(err);
-  },
-);
+import { api } from "./httpClient";
 
 export interface MarketRepProfileUpdate {
   city?: string;
@@ -67,12 +40,14 @@ export interface AuthResponse {
   user?: ApiAuthUser;
 }
 
-// Response shape specific to updateMarketRepProfile — the backend returns
-// the full updated customer document under `profile`, not `user`.
 export interface UpdateMarketRepProfileResponse {
   success: boolean;
   message: string;
   profile: ApiAuthUser;
+}
+
+export interface ApiErrorResponse {
+  message?: string;
 }
 
 export const sendOtpForSignup = async (data: {
@@ -99,7 +74,6 @@ export const resendOtp = async (email: string): Promise<AuthResponse> =>
 export const login = async (data: {
   email: string;
   password: string;
-  role?: number;
 }): Promise<AuthResponse> =>
   (await api.post<AuthResponse>("/login", data)).data;
 
@@ -125,11 +99,11 @@ export const getProfileDetails = async (): Promise<ApiAuthUser> => {
 };
 
 export const updateMarketRepProfile = async (
-  data: MarketRepProfileUpdate
+  data: MarketRepProfileUpdate,
 ): Promise<UpdateMarketRepProfileResponse> => {
   const response = await api.put<UpdateMarketRepProfileResponse>(
     "/update/market-rep/profile",
-    data
+    data,
   );
   return response.data;
 };
