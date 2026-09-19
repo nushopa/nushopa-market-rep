@@ -4,21 +4,19 @@ import Profiledetail from "./Profiledetail";
 const Profile = () => {
     const navigate = useNavigate();
   return (
-    <div>
-      <div className="bg-gray-200 rounded-2xl  py-2 px-4">
-        <p className="text-lg text-start font-semibold mb-4 text-gray-900">
-          Profile
+     <div className="mt-14">
+        <p className="text-md text-start font-semibold mb-4 text-gray-900">
+          Profile Details
         </p>
         
         <Profiledetail/>
 
          <div className="mt-8">
-           <button onClick={() => navigate("/profile")} className="bg-[#121212] text-white hover:bg-blue-600 text-sm font-medium text-gray-900 py-3 px-4 rounded-md transition-colors w-full">
+           <button onClick={() => navigate("/profile")} className="bg-[#028a00] text-[#fff]  text-sm font-medium py-3 px-4 rounded-md transition-colors w-full">
                 Edit Profile
            </button>
           </div>
       </div>
-    </div>
   );
 };
 
