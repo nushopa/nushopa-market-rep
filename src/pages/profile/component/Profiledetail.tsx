@@ -1,5 +1,8 @@
 import { useState, useEffect } from "react";
-import { getProfileDetails, type ApiAuthUser as AuthUser } from "../../../api/authApi";
+import {
+  getProfileDetails,
+  type ApiAuthUser as AuthUser,
+} from "../../../api/authApi";
 
 const Profiledetail = () => {
   const [profile, setProfile] = useState<AuthUser | null>(null);

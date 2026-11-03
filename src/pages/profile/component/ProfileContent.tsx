@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import DateInput from "../../component/customeComp/DateInput";
 import { InputField } from "../../component/customeComp/InputField";
 import ImageInput from "../../component/customeComp/ImageInput";
@@ -16,6 +16,8 @@ const maxDOB = new Date(new Date().setFullYear(new Date().getFullYear() - 18))
   .toISOString()
   .split("T")[0];
 
+const MAX_PROFILE_PICTURE_MB = 5;
+
 const ProfileContent = () => {
   const [form, setForm] = useState<ProfileFormData>({
     profilePicture: null,
@@ -31,10 +33,22 @@ const ProfileContent = () => {
   const [errors, setErrors] = useState<ProfileFormErrors>({});
   const [loading, setLoading] = useState(false);
   const [apiError, setApiError] = useState<string>("");
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null); // FIX: preview of chosen picture
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   const navigate = useNavigate();
   const { setUser } = useAuth();
+
+  // FIX: create/revoke the preview URL whenever the picture changes
+  useEffect(() => {
+    if (!form.profilePicture) {
+      setPreviewUrl(null);
+      return;
+    }
+    const url = URL.createObjectURL(form.profilePicture);
+    setPreviewUrl(url);
+    return () => URL.revokeObjectURL(url);
+  }, [form.profilePicture]);
 
   const validate = (): ProfileFormErrors => {
     const e: ProfileFormErrors = {};
@@ -85,17 +99,18 @@ const ProfileContent = () => {
       );
     }
     if (!uploadPreset) {
-      throw new Error(
-        "VITE_CLOUDINARY_UPLOAD_PRESET is not set in your .env file.",
-      );
+      // FIX: message now names the variable the code actually reads
+      throw new Error("VITE_UPLOAD_PRESET is not set in your .env file.");
     }
 
     const formData = new FormData();
     formData.append("file", file);
     formData.append("upload_preset", uploadPreset);
-    formData.append("resource_type", "auto"); // Supports image and PDF
+    // FIX: removed formData.append("resource_type", "auto").
+    // resource_type belongs in the URL path, not the form body.
 
-    const uploadUrl = `${baseUrl}/image/upload`;
+    // FIX: /auto/upload accepts images AND PDFs (was /image/upload)
+    const uploadUrl = `${baseUrl}/auto/upload`;
 
     const res = await fetch(uploadUrl, {
       method: "POST",
@@ -118,6 +133,13 @@ const ProfileContent = () => {
   };
 
   const handleImageChange = (file: File | null) => {
+    if (file && file.size > MAX_PROFILE_PICTURE_MB * 1024 * 1024) {
+      setErrors((prev) => ({
+        ...prev,
+        profilePicture: `Image must be smaller than ${MAX_PROFILE_PICTURE_MB}MB.`,
+      }));
+      return;
+    }
     set("profilePicture", file);
   };
 
@@ -199,16 +221,43 @@ const ProfileContent = () => {
             Profile Picture
           </h3>
           <div className="flex flex-col items-center mb-4">
-            <div className="relative group inline-block">
-              <UserLayout
-                showName
-                onSettings={() => navigate("/settings")}
-                size="lg"
-              />
+            {/* FIX: clicking now opens the file picker */}
+            <div
+              className="relative group inline-block cursor-pointer"
+              onClick={() => !loading && fileInputRef.current?.click()}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  fileInputRef.current?.click();
+                }
+              }}
+              aria-label="Choose profile picture"
+            >
+              {previewUrl ? (
+                <img
+                  src={previewUrl}
+                  alt="Profile preview"
+                  className="w-24 h-24 rounded-full object-cover"
+                />
+              ) : (
+                <UserLayout
+                  showName
+                  onSettings={() => navigate("/settings")}
+                  size="lg"
+                />
+              )}
+              <span className="block text-center text-xs text-gray-500 mt-2">
+                {previewUrl ? "Change photo" : "Click to add a photo"}
+              </span>
             </div>
 
             {errors.profilePicture && (
-              <p data-error className="text-sm text-red-600 dark:text-red-400">
+              <p
+                data-error
+                className="text-sm text-red-600 dark:text-red-400 mt-2"
+              >
                 {errors.profilePicture}
               </p>
             )}
@@ -220,7 +269,10 @@ const ProfileContent = () => {
             type="file"
             accept="image/png,image/jpeg,image/webp"
             className="hidden"
-            onChange={(e) => handleImageChange(e.target.files?.[0] ?? null)}
+            onChange={(e) => {
+              handleImageChange(e.target.files?.[0] ?? null);
+              e.target.value = ""; // FIX: allow re-selecting the same file
+            }}
           />
         </section>
 
@@ -288,7 +340,7 @@ const ProfileContent = () => {
           <h3 className="text-xs font-semibold tracking-widest text-black uppercase">
             Identity Verification
           </h3>
-          <div className="bg-white  border border-gray-200 dark:border-gray-700 rounded-xl p-6 space-y-5">
+          <div className="bg-white border border-gray-200 dark:border-gray-700 rounded-xl p-6 space-y-5">
             <p className="text-sm text-gray-500 dark:text-gray-400">
               Upload a government-issued ID. Your document is kept secure and
               used only for verification.
@@ -316,7 +368,7 @@ const ProfileContent = () => {
               maxSizeMB={10}
               required
               disabled={loading}
-              className="w-full bg wi"
+              className="w-full"
             />
           </div>
         </section>
@@ -363,7 +415,7 @@ const ProfileContent = () => {
                 ? "Fill in all required fields to submit"
                 : undefined
             }
-            className="bg-[#0F8128] text-white  text-sm font-medium px-8 py-3 rounded-xl hover:opacity-90 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+            className="bg-[#0F8128] text-white text-sm font-medium px-8 py-3 rounded-xl hover:opacity-90 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
           >
             {loading ? (
               <>
