@@ -69,10 +69,7 @@ const OrderDetailPage: React.FC = () => {
       try {
         setLoading(true);
         setError(null);
-
-        // Fetches only the current (cookie-authenticated) distributor's
-        // assigned orders, then finds the one matching the route param —
-        // there's no distributorId to pass or mix up here.
+        
         const response = await fetchDistributorAssignedOrders(distributorId);
         if (response.success && response.data?.assignedOrders) {
           const found = response.data.assignedOrders.find(

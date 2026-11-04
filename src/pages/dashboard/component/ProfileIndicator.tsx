@@ -9,7 +9,7 @@ const ProfileIndicator = () => {
   const navigate = useNavigate();
   const { user, refreshUser } = useAuth();
 
- useEffect(() => {
+  useEffect(() => {
     refreshUser();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -26,7 +26,8 @@ const ProfileIndicator = () => {
   if (!profileComplete) {
     variant = "red";
     title = "Profile Incomplete";
-    description = "Complete your profile to get verified and start using your account.";
+    description =
+      "Complete your profile to get verified and start using your account.";
     showButton = true;
   } else if (status === "approved") {
     variant = "green";
@@ -36,13 +37,15 @@ const ProfileIndicator = () => {
   } else if (status === "rejected") {
     variant = "red";
     title = "Verification Failed";
-    description = "There was an issue with your submitted documents. Please update your profile.";
+    description =
+      "There was an issue with your submitted documents. Please update your profile.";
     showButton = true;
   } else {
     // status === "pending"
     variant = "yellow";
     title = "Verification Under Review";
-    description = "Your profile is complete and pending review. This usually takes 24–48 hours.";
+    description =
+      "Your profile is complete and pending review. This usually takes 24–48 hours.";
     showButton = false;
   }
 
@@ -52,7 +55,9 @@ const ProfileIndicator = () => {
       border: "border-red-200 dark:border-red-800",
       text: "text-red-700",
       subtext: "text-red-600",
-      icon: <AlertTriangle className="w-5 h-5 text-red-600 dark:text-red-500" />,
+      icon: (
+        <AlertTriangle className="w-5 h-5 text-red-600 dark:text-red-500" />
+      ),
       button: "bg-red-600 hover:bg-red-700 text-white",
     },
     yellow: {
@@ -68,7 +73,9 @@ const ProfileIndicator = () => {
       border: "border-green-200 dark:border-green-800",
       text: "text-green-700",
       subtext: "text-green-600",
-      icon: <CheckCircle2 className="w-5 h-5 text-green-600 dark:text-green-400" />,
+      icon: (
+        <CheckCircle2 className="w-5 h-5 text-green-600 dark:text-green-400" />
+      ),
       button: "bg-green-600 hover:bg-green-700 text-white",
     },
   }[variant];

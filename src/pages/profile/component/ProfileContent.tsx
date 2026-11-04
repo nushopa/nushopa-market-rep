@@ -106,10 +106,7 @@ const ProfileContent = () => {
     const formData = new FormData();
     formData.append("file", file);
     formData.append("upload_preset", uploadPreset);
-    // FIX: removed formData.append("resource_type", "auto").
-    // resource_type belongs in the URL path, not the form body.
 
-    // FIX: /auto/upload accepts images AND PDFs (was /image/upload)
     const uploadUrl = `${baseUrl}/auto/upload`;
 
     const res = await fetch(uploadUrl, {
