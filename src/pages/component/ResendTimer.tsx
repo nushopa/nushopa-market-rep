@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 
 interface ResendTimerProps {
   seconds?: number;
@@ -6,45 +6,43 @@ interface ResendTimerProps {
   isLoading?: boolean;
 }
 
-const ResendTimer: React.FC<ResendTimerProps> = ({ 
+const ResendTimer: React.FC<ResendTimerProps> = ({
   seconds = 60,
   onResend,
   isLoading = false,
- }) => {
-  const [timer, setTimer]         = useState(seconds);
-  const [canResend, setCanResend] = useState(false);
+}) => {
+  const [timer, setTimer] = useState(seconds);
+  const canResend = timer <= 0;
 
   useEffect(() => {
-    setTimer(seconds);
-    setCanResend(false);
-  }, [seconds]);
-
-  useEffect(() => {
-    if (timer <= 0) { setCanResend(true); return; }
-    const id = setTimeout(() => setTimer(t => t - 1), 1000);
+    if (canResend) return;
+    const id = setTimeout(() => setTimer((current) => current - 1), 1000);
     return () => clearTimeout(id);
-  }, [timer]);
+  }, [canResend, timer]);
 
   const handleResend = () => {
     if (!canResend || isLoading) return;
-    setCanResend(false);
     setTimer(seconds);
     onResend();
   };
 
   return (
     <div className="otp-resend-row">
-      Didn't receive a code?{' '}
+      Didn't receive a code?{" "}
       {canResend ? (
-        <button className="otp-resend-btn" onClick={handleResend} disabled={isLoading}  >
+        <button
+          className="otp-resend-btn"
+          onClick={handleResend}
+          disabled={isLoading}
+        >
           Resend code
         </button>
       ) : (
         <span>
-          Resend in{' '}
+          Resend in{" "}
           <span className="otp-timer">
-            {String(Math.floor(timer / 60)).padStart(2, '0')}:
-            {String(timer % 60).padStart(2, '0')}
+            {String(Math.floor(timer / 60)).padStart(2, "0")}:
+            {String(timer % 60).padStart(2, "0")}
           </span>
         </span>
       )}
