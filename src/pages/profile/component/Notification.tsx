@@ -1,4 +1,5 @@
 import { useState } from "react";
+import EnablePushNotifications from "../../../components/notification/EnablePushNotifications";
 
 interface SettingsForm {
   name: string;
@@ -31,6 +32,7 @@ const Notification = () => {
       <h3 className="text-lg text-start font-semibold mb-2 text-gray-900">
         Notifications
       </h3>
+      <EnablePushNotifications />
       <div className="space-y">
         {Object.entries(formData.notifications).map(([key, value]) => (
           <label
