@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import AuthLayout from "../component/layout/AuthLayout";
 import { InputField } from "../component/customeComp/InputField";
-import OAuthButton from "../component/layout/OAuthButton";
 import CustomButton from "../component/CustomButton";
 import { useSendSignupOtp, type ApiErrorResponse } from "../../hook/useAuth";
 import type { AxiosError } from "axios";
@@ -54,7 +53,7 @@ const SignUpPage: React.FC = () => {
         email: formData.email,
         phone_number: formData.phoneNumber,
         password: formData.password,
-        role: MARKET_REP_ROLE, 
+        role: MARKET_REP_ROLE,
       },
       {
         onSuccess: () => {
@@ -148,32 +147,6 @@ const SignUpPage: React.FC = () => {
         >
           Create Account
         </CustomButton>
-
-        <div className="relative py-2">
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-gray-200" />
-          </div>
-          <div className="relative flex justify-center text-xs uppercase">
-            <span className="px-3 bg-white text-gray-400 font-medium tracking-wider">
-              or
-            </span>
-          </div>
-        </div>
-
-        <div className="space-y-1">
-          <OAuthButton
-            provider="google"
-            onClick={() => console.log("Google Sign Up")}
-          >
-            Sign up with Google
-          </OAuthButton>
-          <OAuthButton
-            provider="facebook"
-            onClick={() => console.log("Facebook Sign Up")}
-          >
-            Sign up with Facebook
-          </OAuthButton>
-        </div>
       </form>
     </AuthLayout>
   );

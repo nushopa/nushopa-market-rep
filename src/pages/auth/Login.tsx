@@ -1,15 +1,14 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { toast } from 'react-toastify';
-import { AxiosError } from 'axios';
-import AuthLayout from '../component/layout/AuthLayout';
-import { InputField } from '../component/customeComp/InputField';
-import OAuthButton from '../component/layout/OAuthButton';
-import CustomButton from '../component/CustomButton';
-import { useLogin } from '../../hook/useAuth';
-import { logoutUser, type AuthResponse } from '../../api/authApi';
-import { useAuth } from '../../context/AuthContext';
-import { normalizeUser } from '../../utils/normalizeUser';
+import React, { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
+import { AxiosError } from "axios";
+import AuthLayout from "../component/layout/AuthLayout";
+import { InputField } from "../component/customeComp/InputField";
+import CustomButton from "../component/CustomButton";
+import { useLogin } from "../../hook/useAuth";
+import { logoutUser, type AuthResponse } from "../../api/authApi";
+import { useAuth } from "../../context/AuthContext";
+import { normalizeUser } from "../../utils/normalizeUser";
 
 const MARKET_REP_ROLE = 6000;
 
@@ -18,25 +17,25 @@ interface ApiErrorResponse {
 }
 
 const LoginPage: React.FC = () => {
-  const [formData, setFormData] = useState({ email: '', password: '' });
-  const [errors, setErrors]     = useState<Record<string, string>>({});
-  const navigate                = useNavigate();
-  const { setUser }             = useAuth();
+  const [formData, setFormData] = useState({ email: "", password: "" });
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const navigate = useNavigate();
+  const { setUser } = useAuth();
 
   const login = useLogin();
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-    if (errors[name]) setErrors(prev => ({ ...prev, [name]: '' }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
+    if (errors[name]) setErrors((prev) => ({ ...prev, [name]: "" }));
   };
 
   const validate = (): boolean => {
     const next: Record<string, string> = {};
-    if (!formData.email.trim()) next.email = 'Email is required.';
+    if (!formData.email.trim()) next.email = "Email is required.";
     else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email))
-      next.email = 'Enter a valid email address.';
-    if (!formData.password.trim()) next.password = 'Password is required.';
+      next.email = "Enter a valid email address.";
+    if (!formData.password.trim()) next.password = "Password is required.";
     setErrors(next);
     return Object.keys(next).length === 0;
   };
@@ -49,8 +48,10 @@ const LoginPage: React.FC = () => {
       onSuccess: async (data: AuthResponse) => {
         const role = data?.user?.role;
         if (role !== MARKET_REP_ROLE) {
-         await logoutUser().catch(() => {});
-          toast.error('Access denied. This portal is for Market Representatives only.');
+          await logoutUser().catch(() => {});
+          toast.error(
+            "Access denied. This portal is for Market Representatives only.",
+          );
           return;
         }
         const normalizedUser = data?.user ? normalizeUser(data.user) : null;
@@ -58,17 +59,17 @@ const LoginPage: React.FC = () => {
           setUser(normalizedUser);
         }
 
-        toast.success('Login successful!');
+        toast.success("Login successful!");
 
         if (normalizedUser?.profile_completed) {
-          navigate('/dashboard');
+          navigate("/dashboard");
         } else {
-          navigate('/profile');
+          navigate("/profile");
         }
       },
       onError: (err: AxiosError<ApiErrorResponse>) => {
         toast.error(
-          err?.response?.data?.message || 'Invalid email or password.'
+          err?.response?.data?.message || "Invalid email or password.",
         );
       },
     });
@@ -125,24 +126,6 @@ const LoginPage: React.FC = () => {
         >
           Sign In
         </CustomButton>
-
-        <div className="relative py-2">
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-gray-200" />
-          </div>
-          <div className="relative flex justify-center text-xs uppercase">
-            <span className="px-3 bg-white text-gray-400 font-medium tracking-wider">or</span>
-          </div>
-        </div>
-
-        <div className="space-y-2">
-          <OAuthButton provider="google" onClick={() => console.log('Google Login')}>
-            Continue with Google
-          </OAuthButton>
-          <OAuthButton provider="facebook" onClick={() => console.log('Facebook Login')}>
-            Continue with Facebook
-          </OAuthButton>
-        </div>
       </form>
     </AuthLayout>
   );
