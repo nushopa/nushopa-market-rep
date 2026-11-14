@@ -12,7 +12,7 @@ import type { MappedOrder } from "./types";
 import { OrderStatusUpdater } from "./details/OrderStatusUpdater";
 import { CustomerMessageCard } from "./details/Customermessagecard ";
 import { OrderSummaryCard } from "./details/OrderSummaryCard";
-import { OrderDetailsCard } from "./details/OrderDetailsCard";
+import { OrderDetailsCard } from "./details/OrderdetailsCard";
 import { OrderedItemsCard } from "./details/OrderEdItemsCard";
 
 const mapToMappedOrder = (o: AssignedOrder): MappedOrder => {
