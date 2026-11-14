@@ -1,21 +1,21 @@
-export interface OrderItem {
+export interface MappedItem {
   name: string;
   qty: number;
-  price: number;
+  price: number; // unit price
   image: string;
 }
 
 export interface MappedOrder {
-  id: string;
+  id: string; // the orderID string
   assignedTo: string;
-  avatar: string;
   timestamp: string;
-  status: string;
+  status: string; // lowercase
   amount: number;
-  customerContact: string;
+  customerName: string;
+  customerPhone: string;
   itemQty: number;
   chat: string;
-  items: OrderItem[];
+  items: MappedItem[];
 }
 
 export interface ProductItem {
