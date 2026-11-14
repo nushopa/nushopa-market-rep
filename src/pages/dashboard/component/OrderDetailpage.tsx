@@ -11,9 +11,9 @@ import {
 import type { MappedOrder } from "./types";
 import { OrderStatusUpdater } from "./details/OrderStatusUpdater";
 import { CustomerMessageCard } from "./details/Customermessagecard ";
-import { OrderSummaryCard } from "./details/Ordersummarycard";
-import { OrderDetailsCard } from "./details/Orderdetailscard";
-import { OrderedItemsCard } from "./details/Ordereditemscard";
+import { OrderSummaryCard } from "./details/OrderSummaryCard";
+import { OrderDetailsCard } from "./details/OrderDetailsCard";
+import { OrderedItemsCard } from "./details/OrderEdItemsCard";
 
 const mapToMappedOrder = (o: AssignedOrder): MappedOrder => {
   const items = normalizeOrderItems(o.products).map((i) => ({
