@@ -12,6 +12,7 @@ import ProfileContent from "./pages/profile/component/ProfileContent";
 import OrderDetailPage from "./pages/dashboard/component/OrderDetailpage";
 import RequireAuth from "./context/RequireAuth";
 import ProtectedRoute from "./components/ProtectedRoute";
+import ResetPasswordPage from "./pages/auth/ResetPasswordPage";
 
 function NotificationDetailsRoute() {
   const { notifications, markNotificationAsRead, deleteNotification } =
@@ -33,6 +34,7 @@ function App() {
         <Route path="/" element={<Login />} />
         <Route path="/signUp" element={<Signup />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
         <Route path="/otp" element={<Otp />} />
         <Route element={<RequireAuth />}>
           <Route path="/profile" element={<ProfileContent />} />
